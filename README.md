@@ -54,6 +54,13 @@ The resolver (`resolver.js`) uses the same rules as bsvkey.com:
 
 `manifest.json` · `background.js` (redirect rules + omnibox) · `resolver.js` (chain lookup) · `view.html/js` (viewer) · `sandbox.html/js` (page renderer) · `popup.html/js` · `style.css` · `icons/`
 
+## Building a site for your name
+
+Pages render here in a sandbox: they can't reach your wallet, storage or cookies, and they load only inline code. In this extension, outside images, stylesheets, fonts, embeds (YouTube, maps) and CORS web APIs also work. The bsvkey.com viewer is stricter.
+
+- What works in each viewer (tested), what kinds of sites thrive, and copy-paste code: [bsvkey.com/sites](https://bsvkey.com/sites)
+- Take payments from any wallet (BRC-100, the BSVKey wallet, or any wallet by QR code): link to `https://bsvkey.com/pay?to=yourname&sats=5000&label=Tip`. Normal web links open in a regular tab, so the pay page works from here.
+
 ## More
 
 - Names, the market and publishing: [bsvkey.com](https://bsvkey.com) and [bsvkey.com/market](https://bsvkey.com/market)
