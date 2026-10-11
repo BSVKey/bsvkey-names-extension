@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "BSVKey Names",
+  "version": "1.0.0",
+  "description": "Open .key names from the BSVKey name registry on Bitcoin BSV. Type alice.key/ in the address bar.",
+  "icons": { "16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png", "128": "icons/icon128.png" },
+  "action": {
+    "default_title": "Open a .key name",
+    "default_popup": "popup.html",
+    "default_icon": { "16": "icons/icon16.png", "32": "icons/icon32.png" }
+  },
+  "background": { "service_worker": "background.js", "type": "module" },
+  "omnibox": { "keyword": "key" },
+  "permissions": ["declarativeNetRequest", "search"],
+  "host_permissions": ["*://*.key/*", "*://*.bsv/*"],
+  "optional_host_permissions": ["*://*.google.com/*", "*://*.bing.com/*", "*://*.duckduckgo.com/*", "*://search.brave.com/*"],
+  "web_accessible_resources": [{ "resources": ["view.html"], "matches": ["<all_urls>"] }],
+  "sandbox": { "pages": ["sandbox.html"] },
+  "content_security_policy": {
+    "sandbox": "sandbox allow-scripts allow-forms allow-popups allow-modals; default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline' https:; img-src https: data: blob:; font-src https: data:; media-src https: data: blob:; connect-src https:; frame-src https:"
+  }
+}

@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="popup">
+<h1><img src="icons/icon32.png" alt="">BSVKey Names</h1>
+<form id="go">
+  <label class="field"><input id="name" type="text" placeholder="name" autocomplete="off" spellcheck="false" autofocus aria-label="Name"><span>.key</span></label>
+  <button class="btn primary" type="submit">Open</button>
+</form>
+<p id="err" class="err" hidden></p>
+<label class="opt"><input id="typed" type="checkbox"><span>Let me type plain <b class="mono">name.key</b> in the address bar. The browser treats it as a search, so this lets the extension catch searches that are exactly a .key name (Google, Bing, DuckDuckGo, Brave).</span></label>
+<p class="foot">Without that option, type <b class="mono">name.key/</b> (with the slash) or <b class="mono">key name</b>. Claim a name at <a href="https://bsvkey.com/" target="_blank" rel="noopener">bsvkey.com</a>.</p>
+<script src="popup.js"></script>
+</body>
+</html>
