@@ -40,21 +40,31 @@ async function getTxDecoded(txid){
   const t = await wocGet(`/tx/hash/${txid}`); txCache.set(txid, t); return t
 }
 // Confirmed + mempool history, so a claim or page broadcast minutes ago resolves immediately.
+// Uses the paginated /confirmed/history: the legacy /history endpoint returns only the newest 100
+// transactions, which silently hides older name claims and pages.
+const HISTORY_MAX_PAGES = 20
 async function addressHistory(address){
   const list = (raw) => (Array.isArray(raw) ? raw : ((raw && raw.result) || [])).map(h => ({ txid: h.tx_hash, height: h.height }))
-  const [conf, unconf] = await Promise.all([wocGet(`/address/${address}/history`), wocGet(`/address/${address}/unconfirmed/history`).catch(() => [])])
+  const confirmed = []; let token = ''
+  for (let page = 0; page < HISTORY_MAX_PAGES; page++){
+    const raw = await wocGet(`/address/${address}/confirmed/history?limit=1000${token ? '&token=' + encodeURIComponent(token) : ''}`)
+    confirmed.push(...list(raw)); token = raw && raw.nextPageToken; if (!token) break
+  }
+  const unconf = list(await wocGet(`/address/${address}/unconfirmed/history`).catch(() => []))
   const seen = new Set(); const out = []
-  for (const h of [...list(conf), ...list(unconf)]){ if (!seen.has(h.txid)){ seen.add(h.txid); out.push(h) } }
+  for (const h of [...confirmed, ...unconf]){ if (!seen.has(h.txid)){ seen.add(h.txid); out.push(h) } }
   return out
 }
 // Decode txs 20 at a time via WhatsOnChain's bulk endpoint (one request per 20, far under the rate
 // limit), preserving order. Stops starting new reads after deadline.
-async function decodeAll(hist, deadline = Infinity){
+async function decodeAll(hist, deadline = Infinity, parallel = 3){
   const need = [...new Set(hist.map(h => h.txid).filter(id => !txCache.has(id)))]
-  for (let i = 0; i < need.length && Date.now() < deadline; i += 20){
-    try { const arr = await wocGet('/txs', { txids: need.slice(i, i + 20) })
-      for (const t of (Array.isArray(arr) ? arr : [])){ const id = t && (t.txid || t.hash); if (id && t.vout) txCache.set(id, t) } } catch {}
-  }
+  const chunks = []; for (let i = 0; i < need.length; i += 20) chunks.push(need.slice(i, i + 20))
+  let next = 0
+  await Promise.all(Array.from({ length: parallel }, async () => {
+    while (next < chunks.length && Date.now() < deadline){ const chunk = chunks[next++]
+      try { const arr = await wocGet('/txs', { txids: chunk })
+        for (const t of (Array.isArray(arr) ? arr : [])){ const id = t && (t.txid || t.hash); if (id && t.vout) txCache.set(id, t) } } catch {} } }))
   return hist.map(h => txCache.get(h.txid) || null)
 }
 const ord = (h) => (h.height && h.height > 0) ? h.height : Number.MAX_SAFE_INTEGER   // unconfirmed = newest
@@ -181,8 +191,8 @@ async function resolveTxid(txid){
 async function resolveAddress(address, wantName = null){
   const hist = (await addressHistory(address)).sort((a, b) => ord(b) - ord(a)).slice(0, HISTORY_SCAN)
   const decided = new Map()
-  for (let i = 0; i < hist.length; i += 20){                    // decode in bulk batches, walk newest first
-    const batch = await decodeAll(hist.slice(i, i + 20))
+  for (let i = 0; i < hist.length; i += 60){                    // decode in bulk batches (3 x 20), walk newest first
+    const batch = await decodeAll(hist.slice(i, i + 60))
     for (let k = 0; k < batch.length; k++){ const t = batch[k]; if (!t) continue; const h = hist[i + k]
       if (await signerOf(t) !== address) continue
       for (const o of await extractOpReturnsFull(t)){ const r = readRecord(o); if (!r || (r.type !== 'PUB' && r.type !== 'DEL')) continue

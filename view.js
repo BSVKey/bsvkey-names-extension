@@ -29,6 +29,36 @@ function setMeta(r){
   if (r.txid) m.append('  ·  page ', txLink(r.txid, short(r.txid)))
 }
 
+// ---- share: a bsvkey.com link anyone can open, plus the name.key form for extension users ----
+const shareLink = 'https://bsvkey.com/#site=' + encodeURIComponent(name)
+let pageTitle = ''
+const shareText = () => pageTitle ? `${pageTitle} (${name}.key), a website on Bitcoin BSV` : `${name}.key, a website on Bitcoin BSV`
+function openShare(open){
+  $('sharePop').hidden = !open; $('shareBtn').setAttribute('aria-expanded', String(open))
+  if (open){
+    $('shareX').href = 'https://x.com/intent/post?text=' + encodeURIComponent(shareText()) + '&url=' + encodeURIComponent(shareLink)
+    $('shareMail').href = 'mailto:?subject=' + encodeURIComponent(shareText()) + '&body=' + encodeURIComponent(shareLink)
+    $('shareUrl').select()
+  }
+}
+async function copy(text, btn){
+  try { await navigator.clipboard.writeText(text) } catch { const i = btn.previousElementSibling; i.select(); document.execCommand('copy') }
+  const was = btn.textContent; btn.textContent = 'Copied'; setTimeout(() => { btn.textContent = was }, 1500)
+}
+function setupShare(){
+  $('shareName').textContent = name + '.key'
+  $('shareUrl').value = shareLink
+  $('shareKey').value = name + '.key/'
+  $('shareBtn').hidden = false
+  $('shareBtn').onclick = (e) => { e.stopPropagation(); openShare($('sharePop').hidden) }
+  $('copyUrl').onclick = () => copy(shareLink, $('copyUrl'))
+  $('copyKey').onclick = () => copy(name + '.key/', $('copyKey'))
+  if (navigator.share){ $('nativeShare').hidden = false; $('nativeShare').onclick = () => navigator.share({ title: shareText(), url: shareLink }).catch(() => {}) }
+  document.addEventListener('click', (e) => { if (!$('sharePop').hidden && !$('sharePop').contains(e.target)) openShare(false) })
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('sharePop').hidden){ openShare(false); $('shareBtn').focus() } })
+  window.addEventListener('blur', () => { if (!$('sharePop').hidden && document.activeElement === frame) openShare(false) })   // a click into the page frame
+}
+
 // The sandbox page renders the on-chain HTML in its own opaque origin, with no extension access.
 let pendingHtml = null, sandboxReady = false
 function render(html){ pendingHtml = html; if (sandboxReady) send() }
@@ -37,7 +67,7 @@ window.addEventListener('message', (e) => {
   if (e.source !== frame.contentWindow) return
   const d = e.data || {}
   if (d.type === 'ready'){ sandboxReady = true; if (pendingHtml != null) send() }
-  else if (d.type === 'title' && typeof d.title === 'string'){ document.title = d.title.trim() ? `${d.title.trim().slice(0, 80)} · ${name}.key` : `${name}.key` }
+  else if (d.type === 'title' && typeof d.title === 'string'){ pageTitle = d.title.trim().slice(0, 80); document.title = pageTitle ? `${pageTitle} · ${name}.key` : `${name}.key` }
   else if (d.type === 'nav' && NAME_RE.test(String(d.name || ''))){ const url = `view.html#name=${encodeURIComponent(d.name)}`; if (d.newTab) window.open(url, '_blank'); else location.href = url }
   else if (d.type === 'open' && typeof d.url === 'string' && /^(https?|mailto):/i.test(d.url)){ if (d.newTab) window.open(d.url, '_blank', 'noopener'); else location.href = d.url }
 })
@@ -58,6 +88,7 @@ async function main(){
       actions(el('button', { class: 'btn primary', onclick: () => location.reload() }, 'Try again')))
   }
   setMeta(r || {})
+  if (r && r.address) setupShare()                         // claimed names only; nothing to share for an unclaimed one
   if (r && r.html != null) return render(r.html)
   if (r && r.address){
     return panel(el('p', { class: 'eyebrow' }, 'Claimed, no page yet'), nameH1(),

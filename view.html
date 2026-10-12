@@ -14,8 +14,21 @@
     <span class="addr"><span id="nm"></span><span class="tld">.key</span></span>
     <span id="meta" class="meta"></span>
     <span class="sp"></span>
+    <button id="shareBtn" class="sharebtn" type="button" aria-haspopup="dialog" aria-expanded="false" hidden>Share</button>
     <a id="onsite" class="link" target="_blank" rel="noopener">Open on bsvkey.com ↗</a>
   </header>
+  <div id="sharePop" class="pop" role="dialog" aria-label="Share this page" hidden>
+    <p class="pop-h">Share <b id="shareName"></b></p>
+    <label class="pop-l" for="shareUrl">Link that opens in any browser</label>
+    <div class="pop-row"><input id="shareUrl" readonly><button id="copyUrl" class="btn primary" type="button">Copy</button></div>
+    <label class="pop-l" for="shareKey">For people with the BSVKey Names extension</label>
+    <div class="pop-row"><input id="shareKey" readonly><button id="copyKey" class="btn" type="button">Copy</button></div>
+    <div class="pop-actions">
+      <button id="nativeShare" class="btn" type="button" hidden>Share via…</button>
+      <a id="shareX" class="btn" target="_blank" rel="noopener">Post on X</a>
+      <a id="shareMail" class="btn">Email</a>
+    </div>
+  </div>
   <main id="state" class="state"></main>
   <iframe id="site" src="sandbox.html" title="Site content" hidden></iframe>
 </div>

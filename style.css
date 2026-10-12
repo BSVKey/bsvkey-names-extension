@@ -28,6 +28,17 @@ a { color: var(--acc2); }
 .bar .sp { flex: 1; }
 .bar .link { color: var(--mut); text-decoration: none; }
 .bar .link:hover { color: var(--acc2); }
+.bar .sharebtn { border: 1px solid var(--line2); background: var(--bg); color: var(--fg); font: 600 13px system-ui, sans-serif; padding: 5px 12px; border-radius: 6px; cursor: pointer; }
+.bar .sharebtn:hover, .bar .sharebtn[aria-expanded="true"] { border-color: var(--acc); color: var(--acc2); }
+.pop { position: fixed; top: 48px; right: 14px; z-index: 10; width: min(400px, calc(100vw - 28px)); background: var(--card); border: 1px solid var(--line2); border-radius: 12px; padding: 16px; box-shadow: 0 12px 32px rgba(0,0,0,.45); }
+.pop-h { margin: 0 0 12px; font-size: 15px; } .pop-h b { font-family: var(--mono); color: var(--acc); }
+.pop-l { display: block; color: var(--mut); font-size: 12.5px; margin: 0 0 6px; }
+.pop-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.pop-row input { flex: 1; min-width: 0; border: 1px solid var(--line2); border-radius: 8px; background: var(--bg); color: var(--fg); font: 13px var(--mono); padding: 8px 10px; outline: 0; }
+.pop-row input:focus { border-color: var(--acc); }
+.pop-row .btn { padding: 8px 14px; min-width: 76px; }
+.pop-actions { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
+.pop-actions .btn { padding: 8px 12px; font-size: 13px; }
 #site { flex: 1; width: 100%; border: 0; background: #fff; }
 .state { flex: 1; display: flex; align-items: center; justify-content: center; padding: 28px 16px; }
 .box { max-width: 560px; width: 100%; border: 1px solid var(--line); border-radius: 16px; background: var(--card); padding: 32px 28px; }
