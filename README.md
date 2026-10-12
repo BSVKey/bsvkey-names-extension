@@ -28,6 +28,7 @@ If you install from a store, remove any unpacked copy first: two copies would bo
 | `key moonbase` | Omnibox keyword, then Enter |
 | `moonbase.key` | Works after you tick **"Let me type plain name.key"** in the extension popup. That option asks for permission to see Google, Bing, DuckDuckGo and Brave searches, and redirects only searches that are exactly a `.key` name. |
 | Toolbar icon | Popup with a name box |
+| **Share** button (top bar of a name) | Copy a `bsvkey.com/#site=name` link that opens in any browser, copy `name.key/` for people with the extension, or share via your system share sheet, X or email |
 
 `.bsv` works as an alias (`moonbase.bsv/`).
 
