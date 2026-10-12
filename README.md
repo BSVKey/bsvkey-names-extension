@@ -6,16 +6,19 @@ Works in Chrome, Edge, Brave and other Chromium browsers (Manifest V3).
 
 ## Install
 
-**From the store:** the extension is in review at the Chrome Web Store and Microsoft Edge Add-ons. Store links will be added here once it is approved.
+**From the store:**
 
-**From GitHub (works now):**
+- **Microsoft Edge:** [BSVKey Names on Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/nmeeppefbhcadepjblmbajoibambbhhn)
+- **Chrome, Brave and other Chromium browsers:** in review at the Chrome Web Store. Until it is approved, install from GitHub below.
+
+**From GitHub:**
 
 1. Download this repository: green **Code** button, then **Download ZIP**, and unzip it.
 2. Open `chrome://extensions` (Edge: `edge://extensions`, Brave: `brave://extensions`).
 3. Turn on **Developer mode**.
 4. Click **Load unpacked** and pick the unzipped folder (the one with `manifest.json`).
 
-When the store version is out, remove the unpacked copy first: two copies would both try to handle `.key` addresses.
+If you install from a store, remove any unpacked copy first: two copies would both try to handle `.key` addresses.
 
 ## Use
 
