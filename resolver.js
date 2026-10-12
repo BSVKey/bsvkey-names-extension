@@ -183,13 +183,14 @@ async function signerOf(t){
 // ---- resolution (same rules as bsvkey.com) ----
 async function resolveTxid(txid){
   const t = await getTxDecoded(txid)
-  for (const o of await extractOpReturnsFull(t)){ const r = readRecord(o); if (r && r.type === 'PUB' && r.html != null) return { txid, html: r.html } }
+  for (const o of await extractOpReturnsFull(t)){ const r = readRecord(o); if (r && r.type === 'PUB' && r.html != null) return { txid, html: r.html, site: r.site || '' } }
   return null
 }
-// Newest page this address SIGNED for wantName; else its default (untagged) page. A DEL tombstone
-// for the name means "removed", with no fallback.
-async function resolveAddress(address, wantName = null){
-  const hist = (await addressHistory(address)).sort((a, b) => ord(b) - ord(a)).slice(0, HISTORY_SCAN)
+// Newest PUB/DEL record per site that this address SIGNED, walking newest first; minHeight limits
+// the walk to txs at or above that block (plus mempool).
+async function decidePages(address, wantName = null, minHeight = 0){
+  let hist = (await addressHistory(address)).sort((a, b) => ord(b) - ord(a))
+  hist = minHeight > 0 ? hist.filter(h => ord(h) >= minHeight) : hist.slice(0, HISTORY_SCAN)
   const decided = new Map()
   for (let i = 0; i < hist.length; i += 60){                    // decode in bulk batches (3 x 20), walk newest first
     const batch = await decodeAll(hist.slice(i, i + 60))
@@ -201,6 +202,12 @@ async function resolveAddress(address, wantName = null){
     }
     if (wantName && decided.has(wantName)) break                 // newest record for this name already found
   }
+  return decided
+}
+// Newest page this address SIGNED for wantName; else its default (untagged) page. A DEL tombstone
+// for the name means "removed", with no fallback.
+async function resolveAddress(address, wantName = null){
+  const decided = await decidePages(address, wantName)
   if (wantName){ if (decided.has(wantName)) return decided.get(wantName); return decided.get('') || null }
   for (const rec of decided.values()){ if (rec) return rec }
   return null
@@ -217,8 +224,11 @@ async function staticIndex(){
 export async function resolveName(name){
   const want = String(name).toLowerCase()
   const idx = await staticIndex()
-  if (idx){ const rec = idx.names[want]; if (rec && rec.owner) return { name: want, owner: rec.owner, txid: rec.txid, page: rec.page || null, via: 'index' } }
-  const arr = (await addressHistory(REGISTRY_ADDRESS)).sort((a, b) => ord(a) - ord(b))
+  if (idx){ const rec = idx.names[want]; if (rec && rec.owner) return { name: want, owner: rec.owner, txid: rec.txid, page: rec.page || null, via: 'index', idxHeight: idx.height || 0 } }
+  // The index covers every registry tx up to idx.height, so only replay txs at >= that height
+  // (plus mempool) to catch newer claims. Without an index, scan the whole registry.
+  let arr = (await addressHistory(REGISTRY_ADDRESS)).sort((a, b) => ord(a) - ord(b))
+  if (idx && idx.height > 0) arr = arr.filter(h => ord(h) >= idx.height)
   const decoded = await decodeAll(arr, Date.now() + REGISTRY_SCAN_MS)
   let owner = null, claimTxid = null
   for (let i = 0; i < arr.length; i++){ const t = decoded[i]; if (!t) continue
@@ -234,6 +244,17 @@ export async function resolveAny(query){
   if (isTxid(q)) return await resolveTxid(q)
   if (isBsvAddr(q)) return await resolveAddress(q)
   const n = await resolveName(q); if (!n || !n.owner) return { notfound: true, name: q }
+  // The index already applied the page rules up to idx.height; only the owner's newer txs can change it.
+  if (n.via === 'index' && n.idxHeight > 0){
+    const d = await decidePages(n.owner, q, n.idxHeight)
+    let pick
+    if (d.has(q)) pick = d.get(q)                                          // newer page or DEL for this name
+    else {
+      const base = n.page ? await resolveTxid(n.page).catch(() => null) : null
+      pick = (d.has('') && (!base || base.site === '')) ? d.get('') : base   // newer default replaces only a default
+    }
+    return (pick && pick.html != null) ? { ...pick, name: q, address: n.owner, claimTxid: n.txid } : { notfound: true, name: q, address: n.owner, claimTxid: n.txid }
+  }
   if (n.page){ const pg = await resolveTxid(n.page).catch(() => null); if (pg && pg.html != null) return { ...pg, name: q, address: n.owner, claimTxid: n.txid } }
   const r = await resolveAddress(n.owner, q)
   return r ? { ...r, name: q, address: n.owner, claimTxid: n.txid } : { notfound: true, name: q, address: n.owner, claimTxid: n.txid }
