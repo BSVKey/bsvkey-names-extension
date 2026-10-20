@@ -3,9 +3,10 @@ const $ = (id) => document.getElementById(id)
 
 $('go').addEventListener('submit', (e) => {
   e.preventDefault()
-  const name = $('name').value.trim().toLowerCase().replace(/\.(key|bsv)\.?$/, '')
+  const typed = $('name').value.trim().toLowerCase()
+  const name = typed.replace(/\.(key|bsv)\.?$/, '')
   if (!/^[a-z0-9-]{1,64}$/.test(name)){ $('err').hidden = false; $('err').textContent = 'Use lowercase letters, numbers and hyphens.'; return }
-  chrome.tabs.create({ url: chrome.runtime.getURL('view.html') + '#name=' + encodeURIComponent(name) })
+  chrome.tabs.create({ url: chrome.runtime.getURL('view.html') + '#name=' + encodeURIComponent(name) + (/\.bsv\.?$/.test(typed) ? '&tld=bsv' : '') })
   window.close()
 })
 

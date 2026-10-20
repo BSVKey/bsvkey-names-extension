@@ -30,7 +30,7 @@ If you install from a store, remove any unpacked copy first: two copies would bo
 | Toolbar icon | Popup with a name box |
 | **Share** button (top bar of a name) | Copy a `bsvkey.com/#site=name` link that opens in any browser, copy `name.key/` for people with the extension, or share via your system share sheet, X or email |
 
-`.bsv` works as an alias (`moonbase.bsv/`).
+`.bsv` works as an alias (`moonbase.bsv/`): it opens the same name, and the page shows the ending you typed. `.key` stays the main ending.
 
 Inside a `.key` page, links to other `.key` names (or `bsvkey.com/#site=name`) stay in the viewer. Other web links open in the tab normally.
 

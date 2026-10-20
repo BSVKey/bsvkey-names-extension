@@ -1,16 +1,17 @@
-// Routes .key (and .bsv) names to the viewer page. Two ways in:
+// Routes .key names, and .bsv (an alias for the same names), to the viewer page. Two ways in:
 //   1. Address bar URLs like http://alice.key/ are redirected before any DNS lookup happens.
 //   2. Typing plain "alice.key" makes the browser search for it; if the user enabled it in the popup
 //      (optional host permission for the search engine), that exact-name search is redirected too.
 // Rules are dynamic because the redirect target contains this extension's id.
 
 const VIEW = chrome.runtime.getURL('view.html')
-const NAME = '([a-zA-Z0-9-]+)\\.(?:key|bsv)'   // no {1,64}: bounded repeats exceed the rule regex memory limit; view.js enforces length
+// Group 1 is the name; group 2 the ending as typed, passed on so the viewer shows alice.bsv for alice.bsv.
+const NAME = '([a-zA-Z0-9-]+)\\.([kK][eE][yY]|[bB][sS][vV])'   // no {1,64}: bounded repeats exceed the rule regex memory limit; view.js enforces length
 const SEARCH_TAIL = `${NAME}(?:%2F|/)?(?:&.*)?$`
 
 const rule = (id, regexFilter, suffix = '') => ({
   id, priority: 1,
-  action: { type: 'redirect', redirect: { regexSubstitution: `${VIEW}#name=\\1${suffix}` } },
+  action: { type: 'redirect', redirect: { regexSubstitution: `${VIEW}#name=\\1&tld=\\2${suffix}` } },
   condition: { regexFilter, resourceTypes: ['main_frame'] }
 })
 const RULES = [
@@ -33,7 +34,8 @@ const normalize = (s) => String(s || '').trim().toLowerCase().replace(/^https?:\
 chrome.omnibox.setDefaultSuggestion({ description: 'Open <match>%s.key</match> from Bitcoin BSV' })
 chrome.omnibox.onInputEntered.addListener((text, disposition) => {
   const name = normalize(text); if (!name) return
-  const url = `${VIEW}#name=${encodeURIComponent(name)}`
+  const tld = /\.bsv\.?\/?$/i.test(String(text).trim()) ? '&tld=bsv' : ''
+  const url = `${VIEW}#name=${encodeURIComponent(name)}${tld}`
   if (disposition === 'currentTab') chrome.tabs.update({ url })
   else chrome.tabs.create({ url, active: disposition === 'newForegroundTab' })
 })

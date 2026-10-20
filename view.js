@@ -4,6 +4,9 @@ const $ = (id) => document.getElementById(id)
 const params = new URLSearchParams(location.hash.slice(1))
 const name = String(params.get('name') || '').trim().toLowerCase().replace(/\.(key|bsv)\.?$/, '')
 const fromSearch = params.get('from') === 'search'
+// .key is the main ending; .bsv is an alias for the same name. Show whichever was typed.
+const tld = String(params.get('tld') || '').toLowerCase() === 'bsv' || /\.bsv\.?$/i.test(String(params.get('name') || '')) ? 'bsv' : 'key'
+const full = () => `${name}.${tld}`
 const frame = $('site')
 const short = (s) => s.length > 16 ? s.slice(0, 8) + '…' + s.slice(-6) : s
 
@@ -16,11 +19,15 @@ function el(tag, attrs = {}, ...kids){
   for (const k of kids) if (k != null) e.append(k)
   return e
 }
-const nameH1 = () => el('h1', {}, name, el('span', { class: 'tld' }, '.key'))
+const nameH1 = () => {
+  const h = el('h1', {}, name, el('span', { class: 'tld' }, '.' + tld))
+  if (tld === 'bsv') h.title = `${name}.bsv is the same name as ${name}.key`
+  return h
+}
 function panel(...kids){ frame.hidden = true; const s = $('state'); s.hidden = false; s.replaceChildren(el('div', { class: 'box' }, ...kids)) }
 const actions = (...btns) => el('div', { class: 'actions' }, ...btns)
 const claimBtn = () => el('a', { class: 'btn primary', href: 'https://bsvkey.com/', target: '_blank', rel: 'noopener' }, 'Claim a name on bsvkey.com')
-const searchBtn = () => el('button', { class: 'btn', onclick: () => chrome.search.query({ text: `"${name}.key"`, disposition: 'CURRENT_TAB' }) }, `Search the web for “${name}.key”`)
+const searchBtn = () => el('button', { class: 'btn', onclick: () => chrome.search.query({ text: `"${full()}"`, disposition: 'CURRENT_TAB' }) }, `Search the web for “${full()}”`)
 const txLink = (txid, label) => el('a', { href: `https://whatsonchain.com/tx/${txid}`, target: '_blank', rel: 'noopener', title: txid }, label)
 
 function setMeta(r){
@@ -67,14 +74,15 @@ window.addEventListener('message', (e) => {
   if (e.source !== frame.contentWindow) return
   const d = e.data || {}
   if (d.type === 'ready'){ sandboxReady = true; if (pendingHtml != null) send() }
-  else if (d.type === 'title' && typeof d.title === 'string'){ pageTitle = d.title.trim().slice(0, 80); document.title = pageTitle ? `${pageTitle} · ${name}.key` : `${name}.key` }
+  else if (d.type === 'title' && typeof d.title === 'string'){ pageTitle = d.title.trim().slice(0, 80); document.title = pageTitle ? `${pageTitle} · ${full()}` : full() }
   else if (d.type === 'nav' && NAME_RE.test(String(d.name || ''))){ const url = `view.html#name=${encodeURIComponent(d.name)}`; if (d.newTab) window.open(url, '_blank'); else location.href = url }
   else if (d.type === 'open' && typeof d.url === 'string' && /^(https?|mailto):/i.test(d.url)){ if (d.newTab) window.open(d.url, '_blank', 'noopener'); else location.href = d.url }
 })
 
 async function main(){
   $('nm').textContent = name || '?'
-  document.title = `${name || '?'}.key`
+  $('nm').nextElementSibling.textContent = '.' + tld
+  document.title = `${name || '?'}.${tld}`
   $('onsite').href = 'https://bsvkey.com/#site=' + encodeURIComponent(name)
   if (!NAME_RE.test(name)){
     $('onsite').hidden = true
