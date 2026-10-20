@@ -9,9 +9,9 @@ Works in Chrome, Edge, Brave and other Chromium browsers (Manifest V3).
 **From the store:**
 
 - **Microsoft Edge:** [BSVKey Names on Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/nmeeppefbhcadepjblmbajoibambbhhn)
-- **Chrome, Brave and other Chromium browsers:** in review at the Chrome Web Store. Until it is approved, install from GitHub below.
+- **Chrome, Brave and other Chromium browsers:** [BSVKey Names on the Chrome Web Store](https://chromewebstore.google.com/detail/jlcjljbhhljhkfllaedejoalonobjoocd)
 
-**From GitHub:**
+**From GitHub** (to try the latest code before it reaches the stores):
 
 1. Download this repository: green **Code** button, then **Download ZIP**, and unzip it.
 2. Open `chrome://extensions` (Edge: `edge://extensions`, Brave: `brave://extensions`).
