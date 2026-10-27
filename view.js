@@ -27,6 +27,8 @@ const nameH1 = () => {
 function panel(...kids){ frame.hidden = true; const s = $('state'); s.hidden = false; s.replaceChildren(el('div', { class: 'box' }, ...kids)) }
 const actions = (...btns) => el('div', { class: 'actions' }, ...btns)
 const claimBtn = () => el('a', { class: 'btn primary', href: 'https://bsvkey.com/', target: '_blank', rel: 'noopener' }, 'Claim a name on bsvkey.com')
+// Store policy: say plainly that claiming is paid, and that the payment happens on bsvkey.com, not here.
+const feeNote = () => el('p', { class: 'note' }, 'Claiming a name is a paid Bitcoin BSV transaction (20,000 satoshis plus a small miner fee), made on the bsvkey.com website with your own wallet. This extension is free and never makes payments, holds keys or connects to a wallet.')
 const searchBtn = () => el('button', { class: 'btn', onclick: () => chrome.search.query({ text: `"${full()}"`, disposition: 'CURRENT_TAB' }) }, `Search the web for “${full()}”`)
 const txLink = (txid, label) => el('a', { href: `https://whatsonchain.com/tx/${txid}`, target: '_blank', rel: 'noopener', title: txid }, label)
 
@@ -106,6 +108,7 @@ async function main(){
   }
   panel(el('p', { class: 'eyebrow' }, 'Available'), nameH1(),
     el('p', {}, fromSearch ? 'No one has claimed this name. If you meant to search the web, use the button below.' : 'No one has claimed this name yet. Claim it on bsvkey.com and it’s yours, first claim wins.'),
-    actions(fromSearch ? searchBtn() : claimBtn(), fromSearch ? claimBtn() : searchBtn()))
+    actions(fromSearch ? searchBtn() : claimBtn(), fromSearch ? claimBtn() : searchBtn()),
+    feeNote())
 }
 main()
